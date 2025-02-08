@@ -6,6 +6,14 @@ from langchain.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import streamlit as st
+import os
+
+# Configuration
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
+MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+VECTOR_STORE_PATH = "vector_store.faiss"  # Path to save/load the vector store
 
 # Load and preprocess data
 def load_and_chunk_pdf(file_path):
@@ -17,10 +25,19 @@ def load_and_chunk_pdf(file_path):
     )
     return text_splitter.split_documents(documents)
 
-# Create vector store
-def create_vector_store(chunks):
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-    return FAISS.from_documents(chunks, embeddings)
+# Create or load vector store
+def get_vector_store():
+    if os.path.exists(VECTOR_STORE_PATH):
+        # Load existing vector store
+        embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+        return FAISS.load_local(VECTOR_STORE_PATH, embeddings)
+    else:
+        # Create new vector store
+        chunks = load_and_chunk_pdf("data/cyber_laws.pdf")
+        embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+        vector_store = FAISS.from_documents(chunks, embeddings)
+        vector_store.save_local(VECTOR_STORE_PATH)  # Save for future use
+        return vector_store
 
 # Load LLaMA 2 model
 def load_llama2_model():
@@ -47,20 +64,19 @@ def setup_rag_pipeline(vector_store):
 # Streamlit UI
 def main():
     st.title("Indian Cyber Laws AI Assistant")
+
+    # Initialize vector store and RAG pipeline
+    if "vector_store" not in st.session_state:
+        st.session_state.vector_store = get_vector_store()
+    if "qa_pipeline" not in st.session_state:
+        st.session_state.qa_pipeline = setup_rag_pipeline(st.session_state.vector_store)
+
+    # Query input
     query = st.text_input("Ask a question about Indian Cyber Laws:")
 
     if query:
-        # Load and preprocess data
-        chunks = load_and_chunk_pdf("data/cyber_laws.pdf")
-        
-        # Create vector store
-        vector_store = create_vector_store(chunks)
-        
-        # Set up RAG pipeline
-        qa_pipeline = setup_rag_pipeline(vector_store)
-        
         # Get response
-        response = qa_pipeline.run(query)
+        response = st.session_state.qa_pipeline.run(query)
         st.write("Response:")
         st.write(response)
 
