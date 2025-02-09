@@ -1,14 +1,14 @@
-ValueError: The de-serialization relies loading a pickle file. Pickle files can be modified to deliver a malicious payload that results in execution of arbitrary code on your machine.You will need to set `allow_dangerous_deserialization` to `True` to enable deserialization. If you do this, make sure that you trust the source of the data. For example, if you are loading a file that you created, and know that no one else has modified the file, then this is safe to do. Do not set this to `True` if you are loading a file from an untrusted source (e.g., some random site on the internet.).
+TypeError: FAISS.save_local() got an unexpected keyword argument 'allow_dangerous_deserialization'
 Traceback:
-File "/Users/cyril/Documents/clai/claivenv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 121, in exec_func_with_error_handling
+File "/home/leahtara/workspace/clai/claivenv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 121, in exec_func_with_error_handling
     result = func()
-File "/Users/cyril/Documents/clai/claivenv/lib/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 591, in code_to_exec
+             ^^^^^^
+File "/home/leahtara/workspace/clai/claivenv/lib/python3.12/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 591, in code_to_exec
     exec(code, module.__dict__)
-File "/Users/cyril/Documents/clai/app.py", line 109, in <module>
+File "/home/leahtara/workspace/clai/app.py", line 115, in <module>
     main()
-File "/Users/cyril/Documents/clai/app.py", line 80, in main
+File "/home/leahtara/workspace/clai/app.py", line 86, in main
     st.session_state.vector_store = get_vector_store()
-File "/Users/cyril/Documents/clai/app.py", line 41, in get_vector_store
-    return FAISS.load_local(VECTOR_STORE_PATH, embeddings)
-File "/Users/cyril/Documents/clai/claivenv/lib/python3.9/site-packages/langchain_community/vectorstores/faiss.py", line 1190, in load_local
-    raise ValueError(
+                                    ^^^^^^^^^^^^^^^^^^
+File "/home/leahtara/workspace/clai/app.py", line 50, in get_vector_store
+    vector_store.save_local(
