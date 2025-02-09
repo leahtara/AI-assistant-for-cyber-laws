@@ -1,0 +1,18 @@
+def get_vector_store():
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    if os.path.exists(VECTOR_STORE_PATH):
+        # Load existing vector store with security override
+        return FAISS.load_local(
+            VECTOR_STORE_PATH, 
+            embeddings,
+            allow_dangerous_deserialization=True  # Add this line
+        )
+    else:
+        # Create new vector store
+        chunks = load_and_chunk_pdf("data/cyber_laws.pdf")
+        vector_store = FAISS.from_documents(chunks, embeddings)
+        vector_store.save_local(
+            VECTOR_STORE_PATH,
+            allow_dangerous_deserialization=True  # Add this for saving
+        )
+        return vector_store
